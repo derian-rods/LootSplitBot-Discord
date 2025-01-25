@@ -1,0 +1,17 @@
+{
+  "name": "loot-split",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "",
+  "license": "ISC",
+  "author": "Derian Rodriguez Salazar",
+  "main": "app.js",
+  "scripts": {
+    "test": "test",
+    "start": "node --watch ./src/app.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.17.3",
+    "dotenv": "^16.4.7"
+  }
+}
