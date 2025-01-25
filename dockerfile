@@ -18,4 +18,4 @@ RUN npm install
 EXPOSE 8080/tcp
 
 # Comando para iniciar la aplicación
-RUN npm start
+CMD ["npm", "start"]

@@ -8,7 +8,9 @@
   "main": "app.js",
   "scripts": {
     "test": "test",
-    "start": "node --watch ./src/app.js"
+    "start": "node ./src/app.js",
+    "dev": "node --watch ./src/app.js"
+
   },
   "dependencies": {
     "discord.js": "^14.17.3",
