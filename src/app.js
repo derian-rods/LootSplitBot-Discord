@@ -11,6 +11,7 @@ import {
   SlashCommandBuilder,
 } from "discord.js";
 import dotenv from "dotenv";
+import http from "http";
 // import { LootSplitButton } from "./components/LootSplitButton/index.js";
 
 dotenv.config();
@@ -278,3 +279,23 @@ async function sendEmbed(
 }
 
 client.login(TOKEN);
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { "Content-Type": "text/plain" });
+  res.end("BOt is running");
+});
+
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("Unhandled Rejection at:", promise, "reason:", reason);
+  client.login(TOKEN);
+});
+
+process.on("uncaughtException", (error) => {
+  console.error("Uncaught Exception thrown", error);
+  client.login(TOKEN);
+});
+
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});
