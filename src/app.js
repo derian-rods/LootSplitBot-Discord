@@ -12,7 +12,6 @@ import {
 } from "discord.js";
 import dotenv from "dotenv";
 import http from "http";
-// import { LootSplitButton } from "./components/LootSplitButton/index.js";
 
 dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
@@ -33,12 +32,6 @@ const client = new Client({
     Partials.GuildScheduledEvent,
     Partials.ThreadMember,
   ],
-  permissions: [
-    "MANAGE_ROLES",
-    "MANAGE_MESSAGES",
-    "SEND_MESSAGES",
-    "MANAGE_GUILD",
-  ],
 });
 
 client.once("ready", async () => {
@@ -49,8 +42,6 @@ client.once("ready", async () => {
     console.error("Bot is not in any guilds.");
     return;
   }
-
-  const GUILD_ID = guild.id;
 
   const commands = [
     new SlashCommandBuilder()
@@ -86,7 +77,7 @@ client.once("ready", async () => {
 
   try {
     console.log("Started refreshing application (/) commands.");
-    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, GUILD_ID), {
+    await rest.put(Routes.applicationGuildCommands(CLIENT_ID, guild.id), {
       body: commands,
     });
     console.log("Successfully reloaded application (/) commands.");
@@ -118,13 +109,13 @@ client.on("interactionCreate", async (interaction) => {
 
     switch (subcommand) {
       case "create":
-        await handleCreate(interaction, roleName, role);
+        await handleCreate(interaction, role);
         break;
       case "list":
-        await handleList(interaction, roleName, role);
+        await handleList(interaction, role);
         break;
       case "clear":
-        await handleClear(interaction, roleName, role);
+        await handleClear(interaction, role);
         break;
       case "help":
         await handleHelp(interaction);
@@ -133,7 +124,7 @@ client.on("interactionCreate", async (interaction) => {
   }
 });
 
-async function handleCreate(interaction, roleName, role) {
+async function handleCreate(interaction, role) {
   const eventName = interaction.options.getString("event_name");
 
   const button = new ButtonBuilder()
@@ -223,7 +214,7 @@ async function handleCreate(interaction, roleName, role) {
   });
 }
 
-async function handleList(interaction, roleName, role) {
+async function handleList(interaction, role) {
   const membersWithRole = role.members
     .map((member) => member.user.tag)
     .join("\n");
@@ -236,7 +227,7 @@ async function handleList(interaction, roleName, role) {
   );
 }
 
-async function handleClear(interaction, roleName, role) {
+async function handleClear(interaction, role) {
   for (const member of role.members.values()) {
     try {
       await member.roles.remove(role);
@@ -249,7 +240,7 @@ async function handleClear(interaction, roleName, role) {
   }
   await sendEmbed(
     interaction,
-    `Cleared "${roleName}" Loot Split from all users`,
+    `Cleared "💰 Loot Split" from all users`,
     "clear",
     0x00ff00
   );
@@ -282,7 +273,7 @@ client.login(TOKEN);
 
 const server = http.createServer((req, res) => {
   res.writeHead(200, { "Content-Type": "text/plain" });
-  res.end("BOt is running");
+  res.end("Bot is running");
 });
 
 process.on("unhandledRejection", (reason, promise) => {
