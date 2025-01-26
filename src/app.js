@@ -102,7 +102,7 @@ client.on("interactionCreate", async (interaction) => {
 
   if (commandName === "lootsplit") {
     const subcommand = options.getSubcommand();
-    const roleName = "loot-split";
+    const roleName = "💰 Loot Split";
     const role = interaction.guild.roles.cache.find((r) => r.name === roleName);
 
     if (!role) {
