@@ -206,17 +206,34 @@ async function handleCreate(interaction, role) {
   });
 }
 
+function formatMembersInTable(members) {
+  const maxLength = Math.max(...members.map((name) => name.length));
+  const paddedMembers = members.map((name) => name.padEnd(maxLength, "  "));
+  const rows = [];
+  for (let i = 0; i < paddedMembers.length; i += 9) {
+    // Para cada grupo de 9 elementos
+    const table = paddedMembers.slice(i, i + 9);
+    for (let j = 0; j < table.length; j += 3) {
+      // Crear filas de 3 elementos
+      const group = table.slice(j, j + 3);
+      rows.push(group.join(" | "));
+    }
+    rows.push("  "); // Añadir salto de línea entre tablas
+  }
+  return rows.join("\n\n");
+}
+
 async function handleList(interaction, role) {
-  const membersWithRole = role.members
-    .map((member) => member.displayName)
-    .join("\n");
+  const membersWithRole = role.members.map((member) => member.displayName);
+  const formattedMembers = formatMembersInTable(membersWithRole);
+
   const embed = new EmbedBuilder()
     .setColor(0x00ff00)
     .setTitle(`${eventName || " "}`)
     .setDescription(
       `Event created by: ${creatorEventName || "Loot Split"}\n` +
         `Reactions: ${role.members.size}\n\n` +
-        (membersWithRole || "No users have the Loot Split")
+        (formattedMembers || "No users have the Loot Split")
     )
     .setThumbnail(
       "https://drive.google.com/u/0/drive-viewer/AKGpihbq0Yrue6G6aCRfxP3MqnjPh_CDWT81H-N9os3I5rvKsLUYgVIMWlGaHO6GzKjTqAN7EvOt4nk1wXfKqimSrxKgay-HIjK_xl4=s1600-rw-v1"
