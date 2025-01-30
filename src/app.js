@@ -12,6 +12,7 @@ import {
 } from "discord.js";
 import dotenv from "dotenv";
 import http from "http";
+import { url } from "inspector";
 
 dotenv.config();
 const { TOKEN, CLIENT_ID } = process.env;
@@ -34,6 +35,8 @@ const client = new Client({
   ],
 });
 
+let eventName;
+let creatorEventName;
 client.once("ready", async () => {
   console.log(`Ready running as ${client.user?.tag}`);
 
@@ -125,8 +128,8 @@ client.on("interactionCreate", async (interaction) => {
 });
 
 async function handleCreate(interaction, role) {
-  const eventName = interaction.options.getString("event_name");
-
+  eventName = interaction.options.getString("event_name");
+  creatorEventName = interaction.member.displayName;
   const button = new ButtonBuilder()
     .setCustomId("assignRole")
     .setLabel("Reacting to Loot Split")
@@ -136,9 +139,10 @@ async function handleCreate(interaction, role) {
   const row = new ActionRowBuilder().addComponents(button);
 
   const embed = new EmbedBuilder()
-    .setColor(0x00ff00)
-    .setTitle(`Loot Split Event: ${eventName}`)
-    .setDescription(`Click the button to get the Loot Split`);
+    .setColor(0x5865f2)
+    .setTitle(`Event: ${eventName}`)
+    .setDescription(`Click the button to get the 💰 Loot Split`)
+    .setTimestamp();
 
   await interaction.reply({
     embeds: [embed],
@@ -146,11 +150,9 @@ async function handleCreate(interaction, role) {
   });
   const sentMessage = await interaction.fetchReply();
 
-  const filter = (i) =>
-    i.customId === "assignRole" && i.user.id === interaction.user.id;
+  const filter = (i) => i.customId === "assignRole";
   const collector = sentMessage.createMessageComponentCollector({
     filter,
-    max: 1,
     time: 300000, // 5 minutes
   });
 
@@ -190,7 +192,7 @@ async function handleCreate(interaction, role) {
     }
   });
 
-  collector.on("end", async (collected) => {
+  collector.on("end", async () => {
     const disabledButton = new ButtonBuilder()
       .setCustomId("assignRole")
       .setLabel("Assign Role")
@@ -201,49 +203,43 @@ async function handleCreate(interaction, role) {
     const disabledRow = new ActionRowBuilder().addComponents(disabledButton);
 
     await sentMessage.edit({ components: [disabledRow] });
-
-    if (collected.size === 0) {
-      await sendEmbed(
-        interaction,
-        "Error",
-        "No one clicked the button",
-        0xff0000,
-        true
-      );
-    }
   });
 }
 
 async function handleList(interaction, role) {
   const membersWithRole = role.members
-    .map((member) => member.user.tag)
+    .map((member) => member.displayName)
     .join("\n");
-  const description = membersWithRole || "No users have the Loot Split";
-  await sendEmbed(
-    interaction,
-    `Users with Loot Split: ${role.members.size}`,
-    description,
-    0x00ff00
-  );
+  const embed = new EmbedBuilder()
+    .setColor(0x00ff00)
+    .setTitle(`${eventName || " "}`)
+    .setDescription(
+      `Event created by: ${creatorEventName || "Loot Split"}\n` +
+        `Reactions: ${role.members.size}\n\n` +
+        (membersWithRole || "No users have the Loot Split")
+    )
+    .setThumbnail(
+      "https://drive.google.com/u/0/drive-viewer/AKGpihbq0Yrue6G6aCRfxP3MqnjPh_CDWT81H-N9os3I5rvKsLUYgVIMWlGaHO6GzKjTqAN7EvOt4nk1wXfKqimSrxKgay-HIjK_xl4=s1600-rw-v1"
+    )
+    .setTimestamp();
+
+  await interaction.reply({ embeds: [embed] });
 }
 
 async function handleClear(interaction, role) {
   for (const member of role.members.values()) {
     try {
       await member.roles.remove(role);
+      creatorEventName = null;
     } catch (error) {
       console.error(
-        `Failed to remove Loot Split from ${member.user.tag}:`,
+        `Failed to remove Loot Split from ${member.displayName}:`,
         error
       );
     }
   }
-  await sendEmbed(
-    interaction,
-    `Cleared "💰 Loot Split" from all users`,
-    "clear",
-    0x00ff00
-  );
+
+  await sendEmbed(interaction, "Success", "All roles removed", 0x00ff00);
 }
 
 async function handleHelp(interaction) {
@@ -266,7 +262,7 @@ async function sendEmbed(
     .setColor(color)
     .setTitle(title)
     .setDescription(description);
-  await interaction.reply({ embeds: [embed], flags: ephemeral ? 64 : 0 });
+  await interaction.reply({ embeds: [embed], ephemeral });
 }
 
 client.login(TOKEN);
