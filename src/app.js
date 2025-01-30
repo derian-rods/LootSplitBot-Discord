@@ -206,26 +206,24 @@ async function handleCreate(interaction, role) {
   });
 }
 
-function formatMembersInTable(members) {
-  const maxLength = Math.max(...members.map((name) => name.length));
-  const paddedMembers = members.map((name) => name.padEnd(maxLength, "  "));
-  const rows = [];
-  for (let i = 0; i < paddedMembers.length; i += 9) {
-    // Para cada grupo de 9 elementos
-    const table = paddedMembers.slice(i, i + 9);
-    for (let j = 0; j < table.length; j += 3) {
-      // Crear filas de 3 elementos
-      const group = table.slice(j, j + 3);
-      rows.push(group.join(" | "));
-    }
-    rows.push("  "); // Añadir salto de línea entre tablas
-  }
-  return rows.join("\n\n");
-}
+// Función para organizar los usuarios en filas de 4 y devolver un string formateado
+function organizeUsers(users) {
+  let rows = [];
+  let chunkSize = users.length > 10 ? 3 : users.length; // Tamaño de filas: 3 si hay más de 10 usuarios, todo el arreglo si hay 10 o menos
 
+  for (let i = 0; i < users.length; i += chunkSize) {
+    let grid = users.slice(i, i + chunkSize).join("\n");
+    if (chunkSize === 3 && (i + chunkSize) % 9 === 0) {
+      rows.push(grid + "\n\n");
+    } else {
+      rows.push(grid);
+    }
+  }
+  return rows.join(""); // Unir filas sin espacio adicional
+}
 async function handleList(interaction, role) {
   const membersWithRole = role.members.map((member) => member.displayName);
-  const formattedMembers = formatMembersInTable(membersWithRole);
+  const formattedMembers = organizeUsers(membersWithRole);
 
   const embed = new EmbedBuilder()
     .setColor(0x00ff00)
